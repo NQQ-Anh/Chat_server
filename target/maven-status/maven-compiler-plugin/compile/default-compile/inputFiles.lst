@@ -1,0 +1,17 @@
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\api\ApiModels.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\api\ChatController.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\api\ProfileController.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\api\UserController.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\auth\AuthController.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\auth\TokenAuthInterceptor.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\auth\TokenService.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\chat\ChatService.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\chat\ChatWebSocketHandler.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\chat\PresenceRegistry.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\chat\WebSocketAuthInterceptor.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\ChatPlatformApplication.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\config\AppProperties.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\config\DemoDataInitializer.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\config\WebConfig.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\config\WebSocketConfig.java
+D:\Code\BT-LTM-2026\Chat-realtime-PChat\btlltm\chat-platform\server\src\main\java\com\chat\platform\discovery\LanDiscoveryBroadcaster.java
