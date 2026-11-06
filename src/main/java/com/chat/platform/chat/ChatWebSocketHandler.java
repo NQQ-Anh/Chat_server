@@ -82,7 +82,72 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     }
 
     public void broadcastMessage(String roomId, MessageInfo message) {
-        broadcast(roomId, Map.of("type", "message", "message", message));
+        Map<String, Object> event = Map.of(
+                "type", "message",
+                "message", message
+        );
+
+        // Lấy danh sách thành viên đang hoạt động trong nhóm
+        Set<String> activeMembers = Set.copyOf(
+                chat.activeMemberUsernames(roomId)
+        );
+
+        // Lấy tất cả WebSocket session của các thành viên đó
+        Set<WebSocketSession> recipients = new java.util.HashSet<>(
+                presence.sessionsFor(activeMembers)
+        );
+
+        // Gửi sự kiện đến từng session
+        for (WebSocketSession recipient : recipients) {
+            sendSafely(recipient, event);
+        }
+    }
+
+    public void broadcastDirectMessage(
+            String conversationId,
+            MessageInfo message) {
+
+        broadcastDirect(conversationId,
+                Map.of(
+                        "type", "direct_message",
+                        "message", message
+                ));
+    }
+
+    public void broadcastRoomMessageRecalled(
+            String roomId,
+            long messageId,
+            String username) {
+
+        Set<String> activeMembers = Set.copyOf(
+                chat.activeMemberUsernames(roomId)
+        );
+
+        notifyRoomMembers(
+                activeMembers,
+                Map.of(
+                        "type", "message_recalled",
+                        "roomId", roomId,
+                        "messageId", messageId,
+                        "username", username
+                )
+        );
+    }
+
+    public void broadcastDirectMessageRecalled(
+            String conversationId,
+            long messageId,
+            String username) {
+
+        broadcastDirect(
+                conversationId,
+                Map.of(
+                        "type", "direct_message_recalled",
+                        "conversationId", conversationId,
+                        "messageId", messageId,
+                        "username", username
+                )
+        );
     }
 
     public void notifyRoomMembers(Set<String> usernames, Map<String, Object> event) {

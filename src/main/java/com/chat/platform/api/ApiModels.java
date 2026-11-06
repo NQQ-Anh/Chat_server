@@ -35,14 +35,26 @@ public final class ApiModels {
     public record RoomMember(String username, boolean online, String role) {
     }
 
-    public record DirectConversationInfo(String conversationId, String username, boolean online) {
+    public record DirectConversationInfo(String conversationId, String username, String displayName, boolean online) {
     }
 
     public record MessageInfo(long messageId, String roomId, String sender, String content,
                               long timestamp, String fileId, String fileName,
-                              String contentType, List<String> readBy) {
+                              String contentType, List<String> readBy, boolean recalled
+    ) {
     }
 
     public record FileInfo(String fileId, String name, String contentType) {
     }
+
+    public record RoomUnreadCount(
+            String roomId,
+            long unreadCount
+    ) {}
+
+    public record DirectUnreadCount(
+            String conversationId,
+            long unreadCount
+    ) {}
+
 }

@@ -22,15 +22,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import static com.chat.platform.api.ApiModels.RoomUnreadCount;
+import static com.chat.platform.api.ApiModels.DirectUnreadCount;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -76,10 +73,121 @@ public class ChatController {
         return chat.openDirectConversation(username(request), otherUsername);
     }
 
+    @GetMapping("/direct-conversations/unread-counts")
+    public List<DirectUnreadCount> directUnreadCounts(
+            HttpServletRequest request
+    ) {
+        return chat.unreadCountsForDirect(username(request));
+    }
+
+    @PostMapping("/direct-conversations/{conversationId}/files")
+    public MessageInfo uploadDirect(
+            @PathVariable String conversationId,
+            @RequestParam("file") MultipartFile upload,
+            HttpServletRequest request) throws IOException {
+
+        String username = username(request);
+
+        chat.requireDirectParticipant(conversationId, username);
+
+        if (upload.isEmpty() || upload.getSize() > MAX_UPLOAD_SIZE) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "File tải lên phải dưới 10MB");
+        }
+
+        String originalName = safeFileName(upload.getOriginalFilename());
+
+        String contentType = upload.getContentType() == null
+                ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+                : upload.getContentType();
+
+        String fileId = UUID.randomUUID().toString();
+
+        Path uploadDirectory = properties.uploadDir()
+                .toAbsolutePath().normalize();
+
+        Files.createDirectories(uploadDirectory);
+
+        Path destination = uploadDirectory.resolve(fileId + ".bin").normalize();
+
+        if (!destination.startsWith(uploadDirectory)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Invalid file path.");
+        }
+
+        try {
+            upload.transferTo(destination);
+
+            validateImage(destination, contentType);
+
+            MessageInfo saved = chat.saveDirectAttachment(
+                    conversationId,
+                    username,
+                    fileId,
+                    originalName,
+                    contentType
+            );
+
+            webSocket.broadcastDirectMessage(conversationId, saved);
+
+            return saved;
+
+        } catch (RuntimeException | IOException e) {
+            try {
+                Files.deleteIfExists(destination);
+            } catch (IOException cleanupError) {
+                e.addSuppressed(cleanupError);
+            }
+
+            throw e;
+        }
+    }
+
     @GetMapping("/direct-conversations/{conversationId}/messages")
     public List<MessageInfo> directHistory(@PathVariable String conversationId,
                                            HttpServletRequest request) {
         return chat.directHistory(conversationId, username(request));
+    }
+
+    @PostMapping("/direct-conversations/{conversationId}/messages/{messageId}/recall")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void recallDirectMessage(
+            @PathVariable String conversationId,
+            @PathVariable long messageId,
+            HttpServletRequest request) {
+
+        String username = username(request);
+
+        // Kiểm tra quyền và thu hồi tin nhắn trong database
+        chat.recallDirectMessage(conversationId, messageId, username);
+
+        // Gửi thông báo đến hai người tham gia cuộc trò chuyện
+        webSocket.broadcastDirectMessageRecalled(
+                conversationId,
+                messageId,
+                username
+        );
+    }
+
+    @PostMapping("/rooms/{roomId}/messages/{messageId}/recall")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void recallRoomMessage(
+            @PathVariable String roomId,
+            @PathVariable long messageId,
+            HttpServletRequest request) {
+
+        String username = username(request);
+
+        // Kiểm tra quyền và thu hồi tin nhắn trong database
+        chat.recallRoomMessage(roomId, messageId, username);
+
+        // Gửi thông báo đến tất cả thành viên nhóm đang online
+        webSocket.broadcastRoomMessageRecalled(
+                roomId,
+                messageId,
+                username
+        );
     }
 
     @PostMapping("/rooms")
@@ -145,6 +253,13 @@ public class ChatController {
     @GetMapping("/rooms/{roomId}/messages")
     public List<MessageInfo> history(@PathVariable String roomId, HttpServletRequest request) {
         return chat.history(roomId, username(request));
+    }
+
+    @GetMapping("/rooms/unread-counts")
+    public List<RoomUnreadCount> roomUnreadCounts(
+            HttpServletRequest request
+    ) {
+        return chat.unreadCountsForRooms(username(request));
     }
 
     @PostMapping("/rooms/{roomId}/files")
